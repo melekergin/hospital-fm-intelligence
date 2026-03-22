@@ -1,0 +1,2 @@
+name: hospital_fm_pipeline
+schedule: "0 0 * * *"

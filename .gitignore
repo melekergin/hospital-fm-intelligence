@@ -205,3 +205,14 @@ cython_debug/
 marimo/_static/
 marimo/_lsp/
 __marimo__/
+# Bruin / DuckDB / Scratch / Binaries
+hospital_fm.db
+*.exe
+*.zip
+bruin_out.txt
+run_bruin.py
+verify_data.py
+out.txt
+logs/runs
+logs/*.log
+*.py[cod]
