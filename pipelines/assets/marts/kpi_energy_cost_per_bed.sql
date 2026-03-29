@@ -7,11 +7,15 @@ depends:
   - stg_eric
 @bruin */
 
--- KPI: Energy cost per bed
+-- KPI: Energy cost per bed (uses pre-computed field from staging)
 SELECT
     year,
+    year_sort,
     trust_code,
     total_energy_cost,
     available_beds,
-    total_energy_cost / NULLIF(available_beds, 0) AS energy_cost_per_bed
-FROM stg_eric;
+    energy_cost_per_bed
+FROM stg_eric
+WHERE is_valid_record = TRUE
+ORDER BY trust_code, year_sort;
+
