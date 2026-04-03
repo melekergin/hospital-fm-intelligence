@@ -12,7 +12,9 @@ SELECT
     year,
     year_sort,
     trust_code,
-    total_energy_cost,
+    trust_name,
+    region,
+    total_energy_cost_gbp,
     available_beds,
     energy_cost_per_bed
 FROM stg_eric

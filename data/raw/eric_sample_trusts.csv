@@ -1,0 +1,13 @@
+trust_code,trust_name,region,year,maintenance_backlog_cost_gbp,total_energy_cost_gbp,cleaning_cost_gbp,cleaned_floor_area_m2,available_beds
+RBT,Royal Berlin Teaching Trust,London,2021/22,5100000,6400000,3150000,182000,920
+RBT,Royal Berlin Teaching Trust,London,2022/23,5750000,7050000,3380000,182000,920
+RBT,Royal Berlin Teaching Trust,London,2023/24,6620000,7880000,3720000,182000,920
+NST,North Shore NHS Trust,North East,2021/22,1180000,4100000,1880000,121000,610
+NST,North Shore NHS Trust,North East,2022/23,1310000,4470000,2010000,121000,610
+NST,North Shore NHS Trust,North East,2023/24,1460000,4890000,2190000,121000,610
+MCT,Midlands Care Trust,Midlands,2021/22,620000,2980000,1420000,94000,430
+MCT,Midlands Care Trust,Midlands,2022/23,690000,3210000,1490000,94000,430
+MCT,Midlands Care Trust,Midlands,2023/24,760000,3480000,1610000,94000,430
+SCT,South Coast Community Trust,South East,2021/22,142000,1240000,990000,68000,210
+SCT,South Coast Community Trust,South East,2022/23,165000,1310000,1040000,68000,210
+SCT,South Coast Community Trust,South East,2023/24,180000,1390000,1090000,68000,210

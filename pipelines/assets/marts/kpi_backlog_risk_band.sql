@@ -15,18 +15,14 @@ depends:
 --   LOW         : backlog cost per bed <  £1,000
 SELECT
     trust_code,
+    trust_name,
+    region,
     year,
     year_sort,
-    maintenance_backlog_cost                    AS backlog_gbp,
+    maintenance_backlog_cost_gbp                AS backlog_gbp,
     available_beds,
     backlog_cost_per_bed,
-
-    CASE
-        WHEN backlog_cost_per_bed >= 5000 THEN 'HIGH'
-        WHEN backlog_cost_per_bed >= 2500 THEN 'SIGNIFICANT'
-        WHEN backlog_cost_per_bed >= 1000 THEN 'MODERATE'
-        ELSE                                   'LOW'
-    END                                         AS risk_band,
+    UPPER(backlog_risk_band)                    AS risk_band,
 
     -- Numeric rank for easy sorting/filtering in dashboards (1=worst)
     CASE

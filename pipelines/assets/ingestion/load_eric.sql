@@ -5,11 +5,14 @@ materialization:
   type: table
 @bruin */
 
--- This query reads the CSV file and loads it into a table named 'raw_eric' in DuckDB
-SELECT 
-    Trust_Code,
-    Year,
-    CAST(Maintenance_Backlog_Cost AS DOUBLE) AS Maintenance_Backlog_Cost,
-    CAST(Total_Energy_Cost AS DOUBLE) AS Total_Energy_Cost,
-    CAST(Available_Beds AS INT) AS Available_Beds
-FROM read_csv_auto('data/raw/eric_data.csv', header=True);
+SELECT
+    trust_code,
+    trust_name,
+    region,
+    year,
+    CAST(maintenance_backlog_cost_gbp AS DOUBLE) AS maintenance_backlog_cost_gbp,
+    CAST(total_energy_cost_gbp AS DOUBLE) AS total_energy_cost_gbp,
+    CAST(cleaning_cost_gbp AS DOUBLE) AS cleaning_cost_gbp,
+    CAST(cleaned_floor_area_m2 AS DOUBLE) AS cleaned_floor_area_m2,
+    CAST(available_beds AS INTEGER) AS available_beds
+FROM read_csv_auto('data/raw/eric_sample_trusts.csv', header = TRUE);
