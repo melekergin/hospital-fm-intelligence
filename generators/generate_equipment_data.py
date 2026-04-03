@@ -41,6 +41,147 @@ INSPECTION_OUTCOMES = [
 ]
 
 
+def sample_response_minutes(rng: random.Random, priority: str) -> tuple[int, int]:
+    if priority == "Urgent":
+        target = 120
+        return target, rng.randint(12, 150)
+    if priority == "Routine":
+        target = 480
+        return target, rng.randint(45, 540)
+    target = 1440
+    return target, rng.randint(60, 480)
+
+
+def build_planned_timeline(
+    rng: random.Random,
+    status: str,
+    as_of_ts: datetime,
+    duration_hours: int,
+) -> dict[str, datetime | int | str | None]:
+    response_target, response_minutes = sample_response_minutes(rng, "Planned")
+
+    if status == "Closed":
+        event_start = as_of_ts - timedelta(days=rng.randint(10, 260), hours=rng.randint(0, 20))
+        reported = event_start - timedelta(days=rng.randint(5, 30), hours=rng.randint(0, 8))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = event_start - timedelta(hours=rng.randint(0, 3))
+        tech_complete = work_started + timedelta(hours=duration_hours)
+        closed_ts = tech_complete + timedelta(hours=rng.randint(2, 36))
+    elif status == "Technically Complete":
+        event_start = as_of_ts - timedelta(days=rng.randint(1, 10), hours=rng.randint(0, 10))
+        reported = event_start - timedelta(days=rng.randint(3, 18), hours=rng.randint(0, 6))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = event_start - timedelta(hours=rng.randint(0, 2))
+        tech_complete = work_started + timedelta(hours=duration_hours)
+        closed_ts = None
+    elif status == "In Progress":
+        event_start = as_of_ts - timedelta(days=rng.randint(0, 6), hours=rng.randint(0, 10))
+        reported = event_start - timedelta(days=rng.randint(2, 12), hours=rng.randint(0, 5))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = min(
+            first_response + timedelta(minutes=rng.randint(15, 180)),
+            event_start + timedelta(hours=rng.randint(0, 2)),
+        )
+        tech_complete = None
+        closed_ts = None
+    elif status == "Approved":
+        event_start = as_of_ts + timedelta(days=rng.randint(1, 21), hours=rng.randint(6, 12))
+        reported = as_of_ts - timedelta(days=rng.randint(1, 8), hours=rng.randint(0, 6))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = None
+        tech_complete = None
+        closed_ts = None
+    elif status == "Planning":
+        event_start = as_of_ts + timedelta(days=rng.randint(3, 30), hours=rng.randint(6, 12))
+        reported = as_of_ts - timedelta(days=rng.randint(0, 6), hours=rng.randint(0, 8))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = None
+        tech_complete = None
+        closed_ts = None
+    else:
+        event_start = as_of_ts + timedelta(days=rng.randint(5, 35), hours=rng.randint(6, 12))
+        reported = as_of_ts - timedelta(days=rng.randint(0, 3), hours=rng.randint(0, 8))
+        first_response = None
+        work_started = None
+        tech_complete = None
+        closed_ts = None
+
+    return {
+        "event_start": event_start,
+        "reported": reported,
+        "first_response": first_response,
+        "work_started": work_started,
+        "tech_complete": tech_complete,
+        "closed": closed_ts,
+        "response_target": response_target,
+        "response_minutes": response_minutes if first_response else None,
+    }
+
+
+def build_corrective_timeline(
+    rng: random.Random,
+    status: str,
+    as_of_ts: datetime,
+    duration_hours: int,
+    priority: str,
+) -> dict[str, datetime | int | str | None]:
+    response_target, response_minutes = sample_response_minutes(rng, priority)
+
+    if status == "Closed":
+        event_start = as_of_ts - timedelta(days=rng.randint(2, 120), hours=rng.randint(0, 20))
+        reported = event_start + timedelta(minutes=rng.randint(5, 90) if priority == "Urgent" else rng.randint(10, 180))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = first_response + timedelta(minutes=rng.randint(10, 120))
+        tech_complete = work_started + timedelta(hours=duration_hours)
+        closed_ts = tech_complete + timedelta(hours=rng.randint(2, 24))
+    elif status == "Technically Complete":
+        event_start = as_of_ts - timedelta(days=rng.randint(1, 6), hours=rng.randint(0, 12))
+        reported = event_start + timedelta(minutes=rng.randint(5, 60) if priority == "Urgent" else rng.randint(15, 120))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = first_response + timedelta(minutes=rng.randint(10, 120))
+        tech_complete = work_started + timedelta(hours=duration_hours)
+        closed_ts = None
+    elif status == "In Progress":
+        event_start = as_of_ts - timedelta(days=rng.randint(0, 4), hours=rng.randint(0, 12))
+        reported = event_start + timedelta(minutes=rng.randint(5, 45) if priority == "Urgent" else rng.randint(10, 90))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = first_response + timedelta(minutes=rng.randint(10, 90))
+        tech_complete = None
+        closed_ts = None
+    elif status == "Approved":
+        event_start = as_of_ts - timedelta(days=rng.randint(0, 3), hours=rng.randint(0, 10))
+        reported = event_start + timedelta(minutes=rng.randint(5, 30) if priority == "Urgent" else rng.randint(10, 90))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = None
+        tech_complete = None
+        closed_ts = None
+    elif status == "Planning":
+        event_start = as_of_ts - timedelta(days=rng.randint(0, 2), hours=rng.randint(0, 8))
+        reported = event_start + timedelta(minutes=rng.randint(5, 20) if priority == "Urgent" else rng.randint(10, 60))
+        first_response = reported + timedelta(minutes=response_minutes)
+        work_started = None
+        tech_complete = None
+        closed_ts = None
+    else:
+        event_start = as_of_ts - timedelta(days=rng.randint(0, 1), hours=rng.randint(0, 6))
+        reported = event_start + timedelta(minutes=rng.randint(5, 20) if priority == "Urgent" else rng.randint(10, 45))
+        first_response = None
+        work_started = None
+        tech_complete = None
+        closed_ts = None
+
+    return {
+        "event_start": event_start,
+        "reported": reported,
+        "first_response": first_response,
+        "work_started": work_started,
+        "tech_complete": tech_complete,
+        "closed": closed_ts,
+        "response_target": response_target,
+        "response_minutes": response_minutes if first_response else None,
+    }
+
+
 def load_trusts() -> list[tuple]:
     con = duckdb.connect(str(DB_PATH), read_only=True)
     rows = con.execute(
@@ -85,6 +226,7 @@ def create_register_and_events() -> tuple[list[dict], list[dict]]:
     trusts = load_trusts()
     register: list[dict] = []
     events: list[dict] = []
+    as_of_ts = datetime(2025, 3, 31, 18, 0, 0)
 
     for year, trust_code, trust_name, region, trust_type, site_count, area_m2, backlog in trusts:
         for profile in DEVICE_PROFILES:
@@ -128,11 +270,19 @@ def create_register_and_events() -> tuple[list[dict], list[dict]]:
                     }
                 )
 
-                start_of_year = date(2024, 4, 1)
-                end_of_year = date(2025, 3, 31)
-                planned_date = start_of_year + timedelta(days=rng.randint(0, 330))
                 planned_duration = rng.randint(2, 8) if criticality == "High" else rng.randint(1, 4)
                 planned_cost = round(profile["base_cost"] * rng.uniform(0.5, 1.4), 2)
+                planned_status = rng.choices(
+                    [item[0] for item in WORK_ORDER_STATUSES],
+                    weights=[item[1] for item in WORK_ORDER_STATUSES],
+                    k=1,
+                )[0]
+                planned_timeline = build_planned_timeline(
+                    rng,
+                    planned_status,
+                    as_of_ts,
+                    planned_duration,
+                )
                 events.append(
                     {
                         "event_id": f"PM-{asset_id}-001",
@@ -140,25 +290,38 @@ def create_register_and_events() -> tuple[list[dict], list[dict]]:
                         "trust_code": trust_code,
                         "event_type": "Planned Maintenance",
                         "priority": "Planned",
-                        "event_start_ts": datetime.combine(planned_date, datetime.min.time()).isoformat(),
+                        "event_start_ts": planned_timeline["event_start"].isoformat(),
                         "downtime_hours": planned_duration,
                         "maintenance_cost_gbp": planned_cost,
-                        "status": rng.choices(
-                            [item[0] for item in WORK_ORDER_STATUSES],
-                            weights=[item[1] for item in WORK_ORDER_STATUSES],
-                            k=1,
-                        )[0],
+                        "status": planned_status,
                         "work_center": rng.choice(["Biomedical", "Facilities", "External Vendor"]),
                         "planner_group": rng.choice(["MED", "EST", "OPS"]),
                         "failure_mode": "",
+                        "event_reported_ts": planned_timeline["reported"].isoformat(),
+                        "first_response_ts": planned_timeline["first_response"].isoformat() if planned_timeline["first_response"] else "",
+                        "work_started_ts": planned_timeline["work_started"].isoformat() if planned_timeline["work_started"] else "",
+                        "technically_complete_ts": planned_timeline["tech_complete"].isoformat() if planned_timeline["tech_complete"] else "",
+                        "closed_ts": planned_timeline["closed"].isoformat() if planned_timeline["closed"] else "",
+                        "response_target_minutes": planned_timeline["response_target"],
+                        "response_sla_met": (
+                            "Yes"
+                            if planned_timeline["response_minutes"] is not None
+                            and planned_timeline["response_minutes"] <= planned_timeline["response_target"]
+                            else "No"
+                        ),
+                        "as_of_ts": as_of_ts.isoformat(),
                     }
                 )
 
                 if rng.random() < profile["failure_rate"]:
-                    fail_date = start_of_year + timedelta(days=rng.randint(10, 360))
                     downtime = rng.randint(6, 72) if criticality == "High" else rng.randint(2, 24)
                     repair_cost = round(profile["base_cost"] * rng.uniform(0.7, 2.2), 2)
                     priority = "Urgent" if criticality == "High" else "Routine"
+                    corrective_status = rng.choices(
+                        [item[0] for item in WORK_ORDER_STATUSES],
+                        weights=[item[1] for item in WORK_ORDER_STATUSES],
+                        k=1,
+                    )[0]
                     failure_mode = rng.choice(
                         [
                             "Power supply failure",
@@ -169,6 +332,13 @@ def create_register_and_events() -> tuple[list[dict], list[dict]]:
                             "Calibration failure",
                         ]
                     )
+                    corrective_timeline = build_corrective_timeline(
+                        rng,
+                        corrective_status,
+                        as_of_ts,
+                        downtime,
+                        priority,
+                    )
                     events.append(
                         {
                             "event_id": f"CM-{asset_id}-001",
@@ -176,17 +346,26 @@ def create_register_and_events() -> tuple[list[dict], list[dict]]:
                             "trust_code": trust_code,
                             "event_type": "Corrective Maintenance",
                             "priority": priority,
-                            "event_start_ts": datetime.combine(fail_date, datetime.min.time()).isoformat(),
+                            "event_start_ts": corrective_timeline["event_start"].isoformat(),
                             "downtime_hours": downtime,
                             "maintenance_cost_gbp": repair_cost,
-                            "status": rng.choices(
-                                [item[0] for item in WORK_ORDER_STATUSES],
-                                weights=[item[1] for item in WORK_ORDER_STATUSES],
-                                k=1,
-                            )[0],
+                            "status": corrective_status,
                             "work_center": rng.choice(["Biomedical", "Facilities", "External Vendor"]),
                             "planner_group": rng.choice(["MED", "EST", "OPS"]),
                             "failure_mode": failure_mode,
+                            "event_reported_ts": corrective_timeline["reported"].isoformat(),
+                            "first_response_ts": corrective_timeline["first_response"].isoformat() if corrective_timeline["first_response"] else "",
+                            "work_started_ts": corrective_timeline["work_started"].isoformat() if corrective_timeline["work_started"] else "",
+                            "technically_complete_ts": corrective_timeline["tech_complete"].isoformat() if corrective_timeline["tech_complete"] else "",
+                            "closed_ts": corrective_timeline["closed"].isoformat() if corrective_timeline["closed"] else "",
+                            "response_target_minutes": corrective_timeline["response_target"],
+                            "response_sla_met": (
+                                "Yes"
+                                if corrective_timeline["response_minutes"] is not None
+                                and corrective_timeline["response_minutes"] <= corrective_timeline["response_target"]
+                                else "No"
+                            ),
+                            "as_of_ts": as_of_ts.isoformat(),
                         }
                     )
 

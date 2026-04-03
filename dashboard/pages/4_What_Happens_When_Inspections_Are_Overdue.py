@@ -1,11 +1,21 @@
 import plotly.express as px
 import streamlit as st
 
-from lib import apply_base_styles, apply_filters, filter_sidebar, load_real_metrics, pipeline_ready, query, render_setup_message
+from lib import (
+    apply_base_styles,
+    apply_filters,
+    filter_sidebar,
+    load_real_metrics,
+    pipeline_ready,
+    query,
+    render_glossary,
+    render_how_to_read,
+    render_setup_message,
+)
 
 
 st.set_page_config(
-    page_title="Compliance Control",
+    page_title="What Happens When Inspections Are Overdue?",
     page_icon="🛡️",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -59,13 +69,18 @@ latest_year_label = estate_filtered[estate_filtered["year_sort"] == estate_filte
 assets_latest = assets[assets["year"] == latest_year_label].copy()
 summary_latest = summary[summary["year"] == latest_year_label].copy()
 
-st.title("Compliance Control")
+st.title("What happens when inspections are overdue?")
 st.write(
-    "This page turns inspection data into operational risk. It is the first explicit compliance view in the project, using synthetic inspection dates and statuses anchored to the real trust context."
+    "This page is about a common hidden problem. Nothing may look broken yet, but inspections are late, risk is rising, and the hospital is carrying more uncertainty than it should."
+)
+
+render_glossary(
+    ["Compliance", "Work Order", "Planned Maintenance", "Corrective Maintenance"],
+    title="Words You May Need On This Page",
 )
 
 device = st.selectbox(
-    "Equipment category",
+    "Choose equipment type",
     sorted(assets_latest["equipment_category"].unique().tolist()),
 )
 
@@ -81,10 +96,10 @@ metric_cols[4].metric("Action required", f"{int(device_summary['action_required_
 
 story_cols = st.columns(4)
 steps = [
-    ("1. Inspect", "Assets are inspected on a recurring cycle."),
-    ("2. Due Date", "Each asset carries a next inspection due date."),
-    ("3. Escalate", "Overdue or failed inspections move into higher risk buckets."),
-    ("4. Control", "Trusts need to reduce overdue load before it affects operations."),
+    ("1. Inspect", "A device should be checked before it becomes risky."),
+    ("2. Miss the date", "If the due date passes, uncertainty starts growing."),
+    ("3. Risk increases", "Some issues stay overdue, others become serious enough to require action."),
+    ("4. Pressure spreads", "The hospital now carries more operational risk even if no visible failure has happened yet."),
 ]
 for col, (title, body) in zip(story_cols, steps):
     col.markdown(
@@ -97,9 +112,15 @@ for col, (title, body) in zip(story_cols, steps):
         unsafe_allow_html=True,
     )
 
+render_how_to_read(
+    "What this page teaches",
+    "Compliance is not just paperwork. It is a way of reducing uncertainty before a failure becomes visible to staff or patients.",
+)
+
 row1 = st.columns(2)
 
 with row1[0]:
+    st.subheader("How many assets are drifting into risk?")
     risk_counts = (
         device_assets.groupby("compliance_risk_bucket", as_index=False)
         .size()
@@ -119,7 +140,7 @@ with row1[0]:
             "Due Soon": "#2c7da0",
             "In Date": "#4b8f29",
         },
-        labels={"compliance_risk_bucket": "Risk bucket", "asset_count": "Assets"},
+        labels={"compliance_risk_bucket": "Inspection risk level", "asset_count": "Assets"},
     )
     risk_chart.update_layout(
         paper_bgcolor="rgba(0,0,0,0)",
@@ -127,8 +148,13 @@ with row1[0]:
         showlegend=False,
     )
     st.plotly_chart(risk_chart, use_container_width=True)
+    render_how_to_read(
+        "What to notice",
+        "Green means the inspection position is healthy. Blue means the hospital should pay attention soon. Orange and red mean risk is already building up.",
+    )
 
 with row1[1]:
+    st.subheader("Which trusts have the biggest inspection problem?")
     trust_chart = px.bar(
         device_summary.sort_values(["overdue_assets", "action_required_assets"], ascending=False).head(12),
         x="trust_code",
@@ -145,10 +171,18 @@ with row1[1]:
         plot_bgcolor="rgba(255,255,255,0.55)",
     )
     st.plotly_chart(trust_chart, use_container_width=True)
+    render_how_to_read(
+        "Why this matters",
+        "A tall bar means more of that equipment type is sitting in a worse inspection position. That does not guarantee immediate failure, but it does mean the trust is carrying more avoidable risk.",
+    )
 
-st.subheader("Asset-level inspection risk")
+st.subheader("Which specific assets look most exposed?")
+asset_risk_view = device_assets.sort_values(
+    ["compliance_risk_rank", "days_from_due_date"],
+    ascending=[True, False],
+)
 st.dataframe(
-    device_assets[
+    asset_risk_view[
         [
             "trust_code",
             "asset_id",
@@ -162,11 +196,11 @@ st.dataframe(
             "next_inspection_due_date",
             "acquisition_value_gbp",
         ]
-    ].sort_values(["compliance_risk_rank", "days_from_due_date"], ascending=[True, False]),
+    ],
     use_container_width=True,
     hide_index=True,
 )
 
 st.info(
-    "This page is effectively the first DGUV-style operational control view. The next strong addition would be a detailed trust drilldown that combines work orders, compliance, and estate pressure for one selected trust."
+    "The simple message is: overdue inspections are early warning signals. The hospital wants to act here before the problem becomes a breakdown, cancellation, or safety issue."
 )

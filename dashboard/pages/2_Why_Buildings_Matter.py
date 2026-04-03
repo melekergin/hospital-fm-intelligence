@@ -1,12 +1,22 @@
 import plotly.express as px
 import streamlit as st
 
-from lib import apply_base_styles, apply_filters, filter_sidebar, load_real_metrics, pipeline_ready, render_setup_message
+from lib import (
+    apply_base_styles,
+    apply_filters,
+    filter_sidebar,
+    load_real_metrics,
+    ordered_years,
+    pipeline_ready,
+    render_glossary,
+    render_how_to_read,
+    render_setup_message,
+)
 
 
 st.set_page_config(
-    page_title="Estate Pressure",
-    page_icon="📊",
+    page_title="Why Buildings Matter",
+    page_icon="🏥",
     layout="wide",
     initial_sidebar_state="expanded",
 )
@@ -28,14 +38,30 @@ if filtered.empty:
 latest_year = filtered["year_sort"].max()
 latest = filtered[filtered["year_sort"] == latest_year].copy()
 
-st.title("Estate Pressure Explorer")
+st.title("Why hidden building pressure becomes patient pressure")
 st.write(
-    "This page is a trust-level comparison view built from official NHS ERIC site data. It is the analytic counterpart to the narrative home page."
+    "Patients mostly see wards, waiting areas, and treatment rooms. Behind that, hospital FM teams deal with "
+    "aging buildings, energy costs, cleaning demand, and unresolved repairs. This page helps explain why "
+    "problems in the estate eventually show up as operational problems."
+)
+
+render_glossary(["Estate", "Backlog", "Trust"], title="Hospital FM Words, Explained Simply")
+render_how_to_read(
+    "How to use this page",
+    "Start with the two comparison charts to see which trusts carry heavier building pressure. Then use the "
+    "trend view to see whether that pressure is rising or stabilising over time.",
 )
 
 col1, col2 = st.columns(2)
 
 with col1:
+    st.subheader("Which trusts carry the heaviest repair burden?")
+    render_how_to_read(
+        "What this chart shows",
+        "Each point is one trust. Farther right means a larger estate. Higher up means more unresolved backlog. "
+        "Bigger circles also mean higher energy spend. Trusts in the upper-right area are carrying the heaviest "
+        "overall building pressure.",
+    )
     fig_backlog = px.scatter(
         latest,
         x="gross_internal_floor_area_m2",
@@ -51,9 +77,9 @@ with col1:
             "Low": "#4b8f29",
         },
         labels={
-            "gross_internal_floor_area_m2": "Gross internal floor area (m2)",
-            "total_backlog_gbp": "Total backlog (GBP)",
-            "backlog_risk_band_by_m2": "Risk band",
+            "gross_internal_floor_area_m2": "Hospital estate size (m2)",
+            "total_backlog_gbp": "Unresolved building backlog (GBP)",
+            "backlog_risk_band_by_m2": "Pressure band",
         },
     )
     fig_backlog.update_traces(textposition="top center")
@@ -64,6 +90,12 @@ with col1:
     st.plotly_chart(fig_backlog, use_container_width=True)
 
 with col2:
+    st.subheader("Which trusts spend more to keep the estate running?")
+    render_how_to_read(
+        "What to notice",
+        "Trusts higher up spend more on cleaning for each square metre. Trusts farther right spend more on energy "
+        "for each square metre. A trust high on both axes may be dealing with an expensive estate to operate day to day.",
+    )
     fig_cleaning = px.scatter(
         latest,
         x="energy_cost_per_m2",
@@ -85,9 +117,9 @@ with col2:
     )
     st.plotly_chart(fig_cleaning, use_container_width=True)
 
-st.subheader("Trend comparison")
+st.subheader("Is pressure building up over time?")
 trend_metric = st.radio(
-    "Metric",
+    "Choose one estate signal to follow over time",
     ["backlog_cost_per_m2", "energy_cost_per_m2", "cleaning_cost_per_m2"],
     horizontal=True,
 )
@@ -98,13 +130,20 @@ label_map = {
     "cleaning_cost_per_m2": "Cleaning per m2 (GBP)",
 }
 
+render_how_to_read(
+    "How to read the trend",
+    "If a line rises, pressure is getting worse for that trust in the selected measure. Backlog tells you about "
+    "unfinished repair burden. Energy and cleaning show how expensive the estate is to keep running.",
+)
+
 fig_trend = px.line(
-    filtered,
+    filtered.sort_values("year_sort"),
     x="year",
     y=trend_metric,
     color="trust_code",
     markers=True,
     labels={"year": "Year", trend_metric: label_map[trend_metric], "trust_code": "Trust"},
+    category_orders={"year": ordered_years(filtered, descending=False)},
 )
 fig_trend.update_layout(
     paper_bgcolor="rgba(0,0,0,0)",
@@ -112,7 +151,7 @@ fig_trend.update_layout(
 )
 st.plotly_chart(fig_trend, use_container_width=True)
 
-st.subheader("Latest year ranking")
+st.subheader("Which trusts stand out most in the latest year?")
 ranking_metric = st.selectbox(
     "Rank trusts by",
     [
@@ -123,6 +162,12 @@ ranking_metric = st.selectbox(
         "total_cleaning_cost_gbp",
         "cleaning_cost_per_m2",
     ],
+)
+
+render_how_to_read(
+    "Why this matters",
+    "This ranking is a simple way to spot which trusts may need closer attention. High total values often reflect "
+    "large estates. High per-m2 values suggest pressure that stays high even after adjusting for estate size.",
 )
 
 st.dataframe(

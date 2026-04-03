@@ -2,7 +2,7 @@
 
 **Hospital FM Intelligence Hub** is a data engineering and storytelling portfolio project about hospital facility management.
 
-The goal is not just to show pipelines and charts. The goal is to help someone who does not know hospital FM understand how the hospital runs behind the scenes through estates, maintenance, compliance, and sterile processing.
+The aim is not only to show pipelines and dashboards. The aim is to help someone understand how a hospital runs behind the scenes through buildings, maintenance, compliance, sterile services, and backlog pressure.
 
 ## Product Vision
 
@@ -11,20 +11,35 @@ This project combines:
 - synthetic but realistic hospital operations data
 - a local DuckDB warehouse
 - Bruin pipelines
-- a multi-page Streamlit app
+- a multi-page Streamlit learning app
 
-The current narrative is:
-- the estate must be cleaned and powered every day
-- equipment must stay available and compliant
-- sterile goods must move through AEMP with traceability
-- backlog and operational risk accumulate if FM systems fail
+The current product direction is:
+- explain hospital FM through scenarios, not only KPIs
+- connect hidden FM work to patient flow and care readiness
+- keep the language simple enough for non-experts
+- use real estate data plus believable synthetic operational layers
 
 Supporting docs:
-- [project-vision.md](C:/Users/Melek/hospital-fm-intelligence/docs/project-vision.md)
-- [implementation-plan.md](C:/Users/Melek/hospital-fm-intelligence/docs/implementation-plan.md)
-- [architecture.md](C:/Users/Melek/hospital-fm-intelligence/docs/architecture.md)
-- [kpi-catalog.md](C:/Users/Melek/hospital-fm-intelligence/docs/kpi-catalog.md)
-- [source-log.md](C:/Users/Melek/hospital-fm-intelligence/docs/source-log.md)
+- [docs/project-vision.md](docs/project-vision.md)
+- [docs/implementation-plan.md](docs/implementation-plan.md)
+- [docs/architecture.md](docs/architecture.md)
+- [docs/kpi-catalog.md](docs/kpi-catalog.md)
+- [docs/scenario-map.md](docs/scenario-map.md)
+- [docs/source-log.md](docs/source-log.md)
+
+## Screenshots
+
+### A Day In Hospital FM
+
+![A Day In Hospital FM](docs/images/fm_story_day.png)
+
+### Why Is There No Bed For A New Patient?
+
+![Why Is There No Bed For A New Patient?](docs/images/fm_no_bed.png)
+
+### Why Buildings Matter
+
+![Why Buildings Matter](docs/images/fm_buildings.png)
 
 ## What Is Live Right Now
 
@@ -38,32 +53,36 @@ Supporting docs:
 - Maintenance events
 - Compliance inspection status
 - SAP-like work-order flow states
+- Work-order response and aging signals
 - AEMP cycle and batch data
 
 ### Streamlit Product Pages
-- `app.py`: landing page and product entry
-- `1_A_Day_in_FM.py`: narrative story page
-- `2_Estate_Pressure.py`: trust comparison view
-- `3_Equipment_Journey.py`: maintenance and reliability view
-- `4_Compliance_Control.py`: inspection and compliance view
-- `5_Trust_Drilldown.py`: trust-level operational cockpit
-- `6_AEMP_Process.py`: sterile processing view
+- `app.py`: start page and navigation
+- `1_A_Day_In_Hospital_FM.py`: guided story page
+- `2_Why_Buildings_Matter.py`: estate pressure explainer
+- `3_What_Happens_When_Hospital_Equipment_Fails.py`: equipment and maintenance story
+- `4_What_Happens_When_Inspections_Are_Overdue.py`: compliance story
+- `5_One_Hospital_Behind_The_Scenes.py`: trust-level integrated view
+- `6_Why_Surgery_Can_Be_Delayed_By_Sterile_Instruments.py`: AEMP story
+- `7_Why_No_Bed_For_A_New_Patient.py`: patient-flow scenario
+- `8_What_Happens_When_A_CT_Scanner_Fails.py`: CT failure scenario
+- `9_Why_Backlog_Becomes_A_Money_Problem.py`: finance scenario
 
 ## First-Time Walkthrough
 
 If you are opening the app for the first time, use this order:
 
-1. Start at `app.py` to understand what the product covers.
-2. Open `1_A_Day_in_FM.py` for the narrative view of the hospital day.
-3. Open `5_Trust_Drilldown.py` for a single-trust operational cockpit.
-4. Explore `3_Equipment_Journey.py` and `4_Compliance_Control.py` for maintenance depth.
-5. Open `6_AEMP_Process.py` for the sterile processing domain.
+1. Start at `app.py` to choose a learning path.
+2. Open `1_A_Day_In_Hospital_FM.py` for the guided story.
+3. Open `7_Why_No_Bed_For_A_New_Patient.py` for the clearest patient-flow scenario.
+4. Open `8_What_Happens_When_A_CT_Scanner_Fails.py` for a concrete equipment breakdown example.
+5. Open `5_One_Hospital_Behind_The_Scenes.py` to bring the full trust picture together.
 
 ## Architecture
 
 ### Data Sources
-- NHS ERIC trust and site files in [data/raw/nhs_eric](C:/Users/Melek/hospital-fm-intelligence/data/raw/nhs_eric)
-- Synthetic operational CSVs in [data/raw/synthetic](C:/Users/Melek/hospital-fm-intelligence/data/raw/synthetic)
+- NHS ERIC trust and site files in `data/raw/nhs_eric/`
+- Synthetic operational CSVs in `data/raw/synthetic/`
 
 ### Pipeline Stack
 - `Python` for synthetic generators and utility scripts
@@ -78,8 +97,8 @@ If you are opening the app for the first time, use this order:
 4. Build staging views and trust-level marts
 5. Render the app from the mart layer
 
-For a fuller system view, see [architecture.md](C:/Users/Melek/hospital-fm-intelligence/docs/architecture.md).
-For KPI definitions, see [kpi-catalog.md](C:/Users/Melek/hospital-fm-intelligence/docs/kpi-catalog.md).
+For a fuller system view, see [docs/architecture.md](docs/architecture.md).  
+For KPI definitions, see [docs/kpi-catalog.md](docs/kpi-catalog.md).
 
 ## Repository Structure
 
@@ -94,6 +113,7 @@ hospital-fm-intelligence/
 |       |-- nhs_eric/
 |       `-- synthetic/
 |-- docs/
+|   `-- images/
 |-- generators/
 |-- pipelines/
 |   `-- assets/
@@ -148,6 +168,7 @@ Examples of core marts already in use:
 - `kpi_equipment_reliability`
 - `kpi_equipment_compliance`
 - `kpi_work_order_flow`
+- `kpi_work_order_aging`
 - `fact_equipment_work_orders`
 - `kpi_aemp_process_summary`
 - `kpi_aemp_shift_load`
@@ -161,13 +182,15 @@ Examples of core marts already in use:
 - Compliance control
 - Trust operational cockpit
 - AEMP synthetic process layer
-- Multi-page product navigation
+- Scenario-first product navigation
+- Finance explanation through backlog and cost pressure
+- Screenshot-backed project presentation
 
 ### Not Yet Implemented
-- refreshed screenshots from the current multi-page app
-- broader HR and finance domain expansion
+- room-turnaround and bed-readiness event data
+- broader HR and IT domain expansion
 - procure-to-pay and broader SAP process simulation
-- richer media and documentation polish
+- richer scenario-specific synthetic detail beyond the current layers
 
 ## Important Notes
 
@@ -179,7 +202,8 @@ Examples of core marts already in use:
 This repo is meant to show both:
 - technical data engineering ability
 - real hospital FM domain understanding
+- the ability to turn complex operations into a learning product
 
-The project standard is simple:
+The standard is simple:
 
 > Someone should come away understanding how a hospital runs behind the scenes, not just what the charts say.
