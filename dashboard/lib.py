@@ -202,7 +202,7 @@ def render_setup_message() -> None:
         ```powershell
         python scripts/normalize_eric_csv_encoding.py
         bruin run pipelines/
-        streamlit run dashboard/app.py
+        streamlit run dashboard/Start_Here.py
         ```
         """
     )
