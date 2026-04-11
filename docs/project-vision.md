@@ -8,18 +8,10 @@
 
 ---
 
-## About the Builder
-- Junior BI Developer at CFM Charite Facility Management GmbH, Berlin
-- Background in SQL, SSIS, SSAS OLAP Cubes, and SAP modules including PM, FI/CO, and HR
-- Currently completing the DataTalks.Club Data Engineering Zoomcamp
-- Building this project for portfolio value, Zoomcamp completion, and preparation for SAP BW migration work
-- Bringing domain knowledge across medical technology, building management, AEMP/ZSVA, HR, finance, infrastructure, and clinical support services
-
----
 
 ## Core Idea
 
-The goal is simple:
+The goal:
 
 > Someone who knows nothing about hospital facility management should understand how it works after 15 minutes with this project.
 
