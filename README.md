@@ -54,10 +54,11 @@ Supporting docs:
 - Compliance inspection status
 - SAP-like work-order flow states
 - Work-order response and aging signals
+- Bed-readiness and room-turnaround events
 - AEMP cycle and batch data
 
 ### Streamlit Product Pages
-- `app.py`: start page and navigation
+- `Start_Here.py`: start page and navigation
 - `1_A_Day_In_Hospital_FM.py`: guided story page
 - `2_Why_Buildings_Matter.py`: estate pressure explainer
 - `3_What_Happens_When_Hospital_Equipment_Fails.py`: equipment and maintenance story
@@ -72,7 +73,7 @@ Supporting docs:
 
 If you are opening the app for the first time, use this order:
 
-1. Start at `app.py` to choose a learning path.
+1. Start at `Start_Here.py` to choose a learning path.
 2. Open `1_A_Day_In_Hospital_FM.py` for the guided story.
 3. Open `7_Why_No_Bed_For_A_New_Patient.py` for the clearest patient-flow scenario.
 4. Open `8_What_Happens_When_A_CT_Scanner_Fails.py` for a concrete equipment breakdown example.
@@ -105,7 +106,7 @@ For KPI definitions, see [docs/kpi-catalog.md](docs/kpi-catalog.md).
 ```text
 hospital-fm-intelligence/
 |-- dashboard/
-|   |-- app.py
+|   |-- Start_Here.py
 |   |-- lib.py
 |   `-- pages/
 |-- data/
@@ -147,6 +148,7 @@ Generate synthetic maintenance and AEMP data:
 ```powershell
 python generators/generate_equipment_data.py
 python generators/generate_aemp_data.py
+python generators/generate_bed_readiness_data.py
 ```
 
 ### 3. Build the DuckDB warehouse
@@ -158,7 +160,7 @@ bruin run pipelines/
 ### 4. Launch the app
 
 ```powershell
-streamlit run dashboard/app.py
+streamlit run dashboard/Start_Here.py
 ```
 
 ## Current Marts
@@ -182,12 +184,12 @@ Examples of core marts already in use:
 - Compliance control
 - Trust operational cockpit
 - AEMP synthetic process layer
+- Room-turnaround and bed-readiness event data
 - Scenario-first product navigation
 - Finance explanation through backlog and cost pressure
 - Screenshot-backed project presentation
 
 ### Not Yet Implemented
-- room-turnaround and bed-readiness event data
 - broader HR and IT domain expansion
 - procure-to-pay and broader SAP process simulation
 - richer scenario-specific synthetic detail beyond the current layers

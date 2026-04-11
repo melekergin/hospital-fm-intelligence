@@ -18,13 +18,14 @@ The better question is:
 
 What the user learns:
 - a bed can exist physically but still not be ready for use
-- cleaning, room readiness, maintenance, and equipment availability all affect patient flow
+- cleaning, room readiness, maintenance, equipment availability, and discharge timing all affect patient flow
 
 Current app links:
-- landing page
-- `1_A_Day_in_FM.py`
-- `2_Estate_Pressure.py`
-- `5_Trust_Drilldown.py`
+- `Start_Here.py`
+- `1_A_Day_In_Hospital_FM.py`
+- `2_Why_Buildings_Matter.py`
+- `5_One_Hospital_Behind_The_Scenes.py`
+- `7_Why_No_Bed_For_A_New_Patient.py`
 
 ### 2. What happens when a CT scanner fails?
 
@@ -34,9 +35,10 @@ What the user learns:
 - downtime can affect appointments, diagnostics, and clinical throughput
 
 Current app links:
-- `3_Equipment_Journey.py`
-- `4_Compliance_Control.py`
-- `5_Trust_Drilldown.py`
+- `3_What_Happens_When_Hospital_Equipment_Fails.py`
+- `4_What_Happens_When_Inspections_Are_Overdue.py`
+- `5_One_Hospital_Behind_The_Scenes.py`
+- `8_What_Happens_When_A_CT_Scanner_Fails.py`
 
 ### 3. Why can surgery be delayed because of sterile instruments?
 
@@ -45,9 +47,9 @@ What the user learns:
 - traceability, conformity, reprocessing, and dispatch delay matter clinically
 
 Current app links:
-- `6_AEMP_Process.py`
-- `1_A_Day_in_FM.py`
-- `5_Trust_Drilldown.py`
+- `6_Why_Surgery_Can_Be_Delayed_By_Sterile_Instruments.py`
+- `1_A_Day_In_Hospital_FM.py`
+- `5_One_Hospital_Behind_The_Scenes.py`
 
 ### 4. What happens when inspections are overdue?
 
@@ -57,9 +59,9 @@ What the user learns:
 - some issues are urgent even before a visible failure happens
 
 Current app links:
-- `4_Compliance_Control.py`
-- `3_Equipment_Journey.py`
-- `5_Trust_Drilldown.py`
+- `4_What_Happens_When_Inspections_Are_Overdue.py`
+- `3_What_Happens_When_Hospital_Equipment_Fails.py`
+- `5_One_Hospital_Behind_The_Scenes.py`
 
 ### 5. Why does maintenance backlog matter if patients never see it?
 
@@ -69,10 +71,11 @@ What the user learns:
 - estate problems can later turn into clinical disruption
 
 Current app links:
-- `app.py`
-- `1_A_Day_in_FM.py`
-- `2_Estate_Pressure.py`
-- `5_Trust_Drilldown.py`
+- `Start_Here.py`
+- `1_A_Day_In_Hospital_FM.py`
+- `2_Why_Buildings_Matter.py`
+- `5_One_Hospital_Behind_The_Scenes.py`
+- `9_Why_Backlog_Becomes_A_Money_Problem.py`
 
 ### 6. Why do energy and cleaning matter every single day?
 
@@ -81,9 +84,9 @@ What the user learns:
 - hospitals depend on constant background support to stay usable, safe, and efficient
 
 Current app links:
-- `app.py`
-- `1_A_Day_in_FM.py`
-- `2_Estate_Pressure.py`
+- `Start_Here.py`
+- `1_A_Day_In_Hospital_FM.py`
+- `2_Why_Buildings_Matter.py`
 
 ## Design Rule
 
@@ -116,6 +119,6 @@ toward:
 
 That means:
 - simpler page intros
-- more “how to read this” guidance
+- more "how to read this" guidance
 - visible glossary support
 - scenario-first navigation from the landing page

@@ -16,14 +16,15 @@ flowchart TD
     A["Official NHS ERIC Files<br/>2023/24 and 2024/25"] --> B["Normalization Script<br/>scripts/normalize_eric_csv_encoding.py"]
     C["Synthetic Equipment Generator<br/>generators/generate_equipment_data.py"] --> D["Synthetic CSVs"]
     E["Synthetic AEMP Generator<br/>generators/generate_aemp_data.py"] --> D
+    M["Synthetic Bed Readiness Generator<br/>generators/generate_bed_readiness_data.py"] --> D
     B --> F["Bruin Ingestion Assets"]
     D --> F
     F --> G["DuckDB Raw Tables"]
     G --> H["Bruin Staging Views"]
     H --> I["Bruin Marts"]
-    I --> J["Streamlit Landing Page"]
-    I --> K["Story and Domain Pages"]
-    I --> L["Trust Drilldown"]
+    I --> J["Streamlit Start Page"]
+    I --> K["Scenario Pages"]
+    I --> L["Trust View"]
 ```
 
 ## Source Layers
@@ -59,6 +60,7 @@ Current live use:
 - maintenance events
 - inspection status
 - work-order states
+- work-order response and aging
 
 ### 3. Synthetic AEMP Data
 
@@ -76,6 +78,22 @@ Current live use:
 - shift profile
 - bottleneck stage summary
 
+### 4. Synthetic Bed-Readiness Data
+
+Location:
+- [generators/generate_bed_readiness_data.py](C:/Users/Melek/hospital-fm-intelligence/generators/generate_bed_readiness_data.py)
+- [data/raw/synthetic](C:/Users/Melek/hospital-fm-intelligence/data/raw/synthetic)
+
+Purpose:
+- simulate bed turnover and room-readiness timing
+- create patient-flow signals that connect FM work to visible operational delay
+
+Current live use:
+- discharge-to-ready events
+- turnaround timing
+- blocker categories
+- within-target and p90 readiness signals
+
 ## Warehouse Layers
 
 ### Ingestion
@@ -90,6 +108,7 @@ Examples:
 - ERIC site loads
 - equipment register load
 - maintenance events load
+- bed turnover events load
 - AEMP cycle and batch loads
 
 ### Staging
@@ -106,6 +125,7 @@ Examples:
 - ERIC site core staging
 - equipment register staging
 - maintenance event staging
+- bed turnover event staging
 - AEMP cycle and batch staging
 
 ### Marts
@@ -136,6 +156,10 @@ Core mart groups:
 - `kpi_aemp_process_summary`
 - `kpi_aemp_shift_load`
 
+#### Bed Readiness
+- `fact_bed_readiness_events`
+- `kpi_bed_readiness_summary`
+
 #### Integrated Trust View
 - `kpi_trust_operational_cockpit`
 
@@ -154,21 +178,23 @@ Responsibility:
 - common sidebar filtering
 
 ### Main Entry
-- [app.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/app.py)
+- [Start_Here.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/Start_Here.py)
 
 Responsibility:
-- landing page
+- scenario-first navigation
 - product framing
-- domain entry points
-- high-level live signals
+- quick entry points into the learning app
 
-### Domain Pages
-- [1_A_Day_in_FM.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/1_A_Day_in_FM.py)
-- [2_Estate_Pressure.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/2_Estate_Pressure.py)
-- [3_Equipment_Journey.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/3_Equipment_Journey.py)
-- [4_Compliance_Control.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/4_Compliance_Control.py)
-- [5_Trust_Drilldown.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/5_Trust_Drilldown.py)
-- [6_AEMP_Process.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/6_AEMP_Process.py)
+### Scenario And Story Pages
+- [1_A_Day_In_Hospital_FM.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/1_A_Day_In_Hospital_FM.py)
+- [2_Why_Buildings_Matter.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/2_Why_Buildings_Matter.py)
+- [3_What_Happens_When_Hospital_Equipment_Fails.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/3_What_Happens_When_Hospital_Equipment_Fails.py)
+- [4_What_Happens_When_Inspections_Are_Overdue.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/4_What_Happens_When_Inspections_Are_Overdue.py)
+- [5_One_Hospital_Behind_The_Scenes.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/5_One_Hospital_Behind_The_Scenes.py)
+- [6_Why_Surgery_Can_Be_Delayed_By_Sterile_Instruments.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/6_Why_Surgery_Can_Be_Delayed_By_Sterile_Instruments.py)
+- [7_Why_No_Bed_For_A_New_Patient.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/7_Why_No_Bed_For_A_New_Patient.py)
+- [8_What_Happens_When_A_CT_Scanner_Fails.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/8_What_Happens_When_A_CT_Scanner_Fails.py)
+- [9_Why_Backlog_Becomes_A_Money_Problem.py](C:/Users/Melek/hospital-fm-intelligence/dashboard/pages/9_Why_Backlog_Becomes_A_Money_Problem.py)
 
 ## Design Principles
 
@@ -180,13 +206,6 @@ Responsibility:
 
 ## Current Limitations
 
-- The old screenshots in `docs/images` do not yet reflect the current multi-page product
 - Bed-normalized official metrics are still limited by the shape of the published ERIC site data
-- Navigation is improved, but the app could still benefit from custom page-level linking and richer visual onboarding
-
-## Next Architecture Step
-
-The next structural improvement should be a dedicated documentation and media pass:
-- refresh screenshots from the current app
-- add a simple KPI catalog
-- tighten the connection between the landing page and domain pages
+- Some scenario pages still reuse trust-level aggregates and could benefit from richer event-level operational data
+- The trust-wide page is still denser than the rest of the learning journey
