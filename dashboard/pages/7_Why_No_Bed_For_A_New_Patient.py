@@ -9,6 +9,7 @@ from lib import (
     query,
     render_glossary,
     render_how_to_read,
+    render_next_steps,
     render_setup_message,
 )
 
@@ -33,6 +34,20 @@ cockpit = query(
     ORDER BY year_sort DESC, total_backlog_gbp DESC
     """
 )
+bed_readiness = query(
+    """
+    SELECT *
+    FROM kpi_bed_readiness_summary
+    ORDER BY avg_turnaround_minutes DESC
+    """
+)
+bed_events = query(
+    """
+    SELECT *
+    FROM fact_bed_readiness_events
+    ORDER BY discharge_ts DESC
+    """
+)
 
 years = ordered_years(cockpit, descending=True)
 selected_year = st.sidebar.selectbox("Year", years, index=0)
@@ -42,6 +57,11 @@ selected_trust = st.sidebar.selectbox("Trust", trust_options, index=0)
 
 trust_row = year_view[year_view["trust_code"] == selected_trust].iloc[0]
 peer_view = year_view.copy()
+bed_year = bed_readiness[bed_readiness["year"] == selected_year].copy()
+bed_events_year = bed_events[bed_events["year"] == selected_year].copy()
+trust_bed = bed_year[bed_year["trust_code"] == selected_trust].copy()
+trust_bed_row = trust_bed.iloc[0] if not trust_bed.empty else None
+trust_bed_events = bed_events_year[bed_events_year["trust_code"] == selected_trust].copy()
 
 st.title("Why is there no bed for a new patient?")
 st.write(
@@ -65,7 +85,11 @@ blockers = [
     (
         "Room turnaround",
         "Beds do not become usable again until spaces are cleaned and made ready.",
-        f"Cleaning spend: GBP {trust_row['cleaning_cost_per_m2']:,.2f} per m2",
+        (
+            f"Average bed turnaround: {trust_bed_row['avg_turnaround_minutes']:,.0f} min"
+            if trust_bed_row is not None
+            else f"Cleaning spend: GBP {trust_row['cleaning_cost_per_m2']:,.2f} per m2"
+        ),
     ),
     (
         "Building pressure",
@@ -98,10 +122,10 @@ for col, (title, body, metric) in zip(blocker_cols, blockers):
 peer_comparison = pd.DataFrame(
     [
         {
-            "signal": "Cleaning pressure",
-            "selected_trust": trust_row["cleaning_cost_per_m2"],
-            "peer_median": peer_view["cleaning_cost_per_m2"].median(),
-            "unit": "GBP per m2",
+            "signal": "Bed turnaround",
+            "selected_trust": trust_bed_row["avg_turnaround_minutes"] if trust_bed_row is not None else None,
+            "peer_median": bed_year["avg_turnaround_minutes"].median() if not bed_year.empty else None,
+            "unit": "minutes",
         },
         {
             "signal": "Repair backlog",
@@ -122,7 +146,7 @@ peer_comparison = pd.DataFrame(
             "unit": "minutes",
         },
     ]
-)
+).dropna()
 comparison_long = peer_comparison.melt(
     id_vars=["signal", "unit"],
     value_vars=["selected_trust", "peer_median"],
@@ -160,11 +184,16 @@ with row1[1]:
     st.subheader("How does this trust compare with peers overall?")
     render_how_to_read(
         "How to read this bubble chart",
-        "Further right means higher cleaning pressure. Higher up means higher repair backlog. Bigger bubbles mean more overdue inspections. Darker colour means more sterile dispatch delay.",
+        "Further right means slower bed turnaround. Higher up means higher repair backlog. Bigger bubbles mean more overdue inspections. Darker colour means more sterile dispatch delay.",
+    )
+    bed_scatter = peer_view.merge(
+        bed_year[["trust_code", "avg_turnaround_minutes"]],
+        on="trust_code",
+        how="left",
     )
     fig = px.scatter(
-        peer_view,
-        x="cleaning_cost_per_m2",
+        bed_scatter.dropna(subset=["avg_turnaround_minutes"]),
+        x="avg_turnaround_minutes",
         y="backlog_cost_per_m2",
         size="overdue_assets",
         color="avg_dispatch_delay_minutes",
@@ -172,7 +201,7 @@ with row1[1]:
         text="trust_code",
         color_continuous_scale=["#2c7da0", "#d17b0f", "#b23a48"],
         labels={
-            "cleaning_cost_per_m2": "Cleaning pressure (GBP per m2)",
+            "avg_turnaround_minutes": "Average bed turnaround (minutes)",
             "backlog_cost_per_m2": "Repair backlog (GBP per m2)",
             "avg_dispatch_delay_minutes": "Sterile dispatch delay (min)",
         },
@@ -187,6 +216,85 @@ with row1[1]:
         plot_bgcolor="rgba(255,255,255,0.55)",
     )
     st.plotly_chart(fig, use_container_width=True)
+
+row2 = st.columns(2)
+
+with row2[0]:
+    st.subheader("What is actually slowing bed turnaround in this trust?")
+    render_how_to_read(
+        "Why this matters",
+        "This is the first direct bed-readiness view in the app. It shows which blocker appears most often after discharge before a bed becomes ready again.",
+    )
+    if trust_bed_row is not None:
+        blocker_rollup = pd.DataFrame(
+            {
+                "blocker": [
+                    "Cleaning queue",
+                    "Isolation reset",
+                    "Equipment not ready",
+                    "Maintenance clearance",
+                    "Porter / room release",
+                    "Clinical hold",
+                ],
+                "events": [
+                    trust_bed_row["blocker_cleaning_queue"],
+                    trust_bed_row["blocker_isolation_reset"],
+                    trust_bed_row["blocker_equipment_not_ready"],
+                    trust_bed_row["blocker_maintenance_clearance"],
+                    trust_bed_row["blocker_porter_release"],
+                    trust_bed_row["blocker_clinical_hold"],
+                ],
+            }
+        ).sort_values("events", ascending=False)
+        fig = px.bar(
+            blocker_rollup,
+            x="blocker",
+            y="events",
+            labels={"blocker": "Bed-readiness blocker", "events": "Events"},
+            color="events",
+            color_continuous_scale=["#2c7da0", "#d17b0f", "#b23a48"],
+        )
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(255,255,255,0.55)",
+            showlegend=False,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Bed-readiness data is not available for this trust and year.")
+
+with row2[1]:
+    st.subheader("How often is the bed ready within the target window?")
+    render_how_to_read(
+        "How to read this",
+        "The target here is 120 minutes from discharge to bed ready. Lower in-target performance means more friction before the bed can be reused.",
+    )
+    if trust_bed_row is not None:
+        target_view = pd.DataFrame(
+            {
+                "status": ["Within 2 hours", "Over 2 hours"],
+                "events": [
+                    trust_bed_row["turnover_event_count"] * trust_bed_row["within_target_pct"] / 100.0,
+                    trust_bed_row["turnover_event_count"] * (100.0 - trust_bed_row["within_target_pct"]) / 100.0,
+                ],
+            }
+        )
+        fig = px.bar(
+            target_view,
+            x="status",
+            y="events",
+            color="status",
+            color_discrete_map={"Within 2 hours": "#4b8f29", "Over 2 hours": "#b23a48"},
+            labels={"status": "Turnaround result", "events": "Events"},
+        )
+        fig.update_layout(
+            paper_bgcolor="rgba(0,0,0,0)",
+            plot_bgcolor="rgba(255,255,255,0.55)",
+            showlegend=False,
+        )
+        st.plotly_chart(fig, use_container_width=True)
+    else:
+        st.info("Bed-readiness target data is not available for this trust and year.")
 
 st.subheader("A simple explanation path")
 path_cols = st.columns(4)
@@ -235,11 +343,46 @@ st.dataframe(
                 "action_required_assets": trust_row["action_required_assets"],
                 "avg_dispatch_delay_minutes": trust_row["avg_dispatch_delay_minutes"],
                 "aemp_cycle_count": trust_row["aemp_cycle_count"],
+                "avg_bed_turnaround_minutes": trust_bed_row["avg_turnaround_minutes"] if trust_bed_row is not None else None,
+                "p90_bed_turnaround_minutes": trust_bed_row["p90_turnaround_minutes"] if trust_bed_row is not None else None,
+                "within_2h_pct": trust_bed_row["within_target_pct"] if trust_bed_row is not None else None,
             }
         ]
     ),
     use_container_width=True,
     hide_index=True,
+)
+
+if not trust_bed_events.empty:
+    st.subheader("Recent bed-readiness events")
+    render_how_to_read(
+        "What this table helps answer",
+        "This gives the bed story at event level: when discharge happened, how long the turnaround took, and what the main blocker was before the bed became usable again.",
+    )
+    st.dataframe(
+        trust_bed_events[
+            [
+                "site_code",
+                "ward_type",
+                "bed_id",
+                "discharge_ts",
+                "bed_ready_ts",
+                "turnaround_minutes",
+                "turnaround_bucket",
+                "primary_blocker",
+            ]
+        ].sort_values("discharge_ts", ascending=False).head(25),
+        use_container_width=True,
+        hide_index=True,
+    )
+
+render_next_steps(
+    "Where next?",
+    [
+        ("A Day In Hospital FM", "dashboard/pages/1_A_Day_In_Hospital_FM.py", "Step back to the guided story"),
+        ("Why buildings matter", "dashboard/pages/2_Why_Buildings_Matter.py", "See the estate side of the pressure"),
+        ("One hospital behind the scenes", "dashboard/pages/5_One_Hospital_Behind_The_Scenes.py", "See how this scenario connects with other FM domains"),
+    ],
 )
 
 st.info(

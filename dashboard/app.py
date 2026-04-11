@@ -9,6 +9,7 @@ from lib import (
     pipeline_ready,
     query,
     render_glossary,
+    render_next_steps,
     render_setup_message,
 )
 
@@ -54,7 +55,7 @@ aemp_latest = aemp[aemp["year"] == latest_year_label].copy() if not aemp.empty e
 
 st.title("Start here")
 st.write(
-    "This page is only the front door. Use it to choose a learning path. The actual storytelling happens inside the pages on the left."
+    "Choose the hospital question that feels most interesting to you. This page should help you enter the app quickly, not make you read another full explanation first."
 )
 
 render_glossary(
@@ -80,63 +81,48 @@ overview_cols[2].markdown(
     unsafe_allow_html=True,
 )
 
-st.markdown("### Choose a learning path")
-st.caption("Simple navigation only. No detailed visuals on this page.")
+st.markdown("### Choose a path")
+st.caption("Click a route below. The goal is to get readers to the interesting pages immediately.")
 
-nav_cols = st.columns(3)
-nav_cols[0].markdown(
-    """
-    <div class="nav-card">
-        <h3>Start with the big picture</h3>
-        <p><strong>Pages:</strong> A Day In Hospital FM, Why Is There No Bed For A New Patient?</p>
-        <p>Best for first-time users who want the simplest explanation of how hidden FM work affects patient flow.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-nav_cols[1].markdown(
-    """
-    <div class="nav-card">
-        <h3>Follow equipment problems</h3>
-        <p><strong>Pages:</strong> What Happens When Hospital Equipment Fails?, What Happens When A CT Scanner Fails?, What Happens When Inspections Are Overdue?</p>
-        <p>Use this path to understand maintenance, breakdowns, inspections, work orders, and technician response.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-nav_cols[2].markdown(
-    """
-    <div class="nav-card">
-        <h3>Follow theatre and hospital flow</h3>
-        <p><strong>Pages:</strong> Why Surgery Can Be Delayed By Sterile Instruments, Why Buildings Matter, One Hospital Behind The Scenes</p>
-        <p>Use this path to connect sterile services, estate pressure, and trust-level operational strain.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
-st.write("")
-finance_cols = st.columns(2)
-finance_cols[0].markdown(
-    """
-    <div class="nav-card">
-        <h3>Follow the money</h3>
-        <p><strong>Page:</strong> Why Backlog Becomes A Money Problem</p>
-        <p>Use this page to understand why deferred repairs are not only a technical risk but also a financial one.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-finance_cols[1].markdown(
-    """
-    <div class="nav-card">
-        <h3>Then return to the operations pages</h3>
-        <p><strong>Best follow-up:</strong> Why Buildings Matter or One Hospital Behind The Scenes</p>
-        <p>That helps connect the financial story back to everyday hospital pressure and patient-facing consequences.</p>
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
+route_cols = st.columns(4)
+routes = [
+    (
+        "I know nothing yet",
+        "pages/1_A_Day_In_Hospital_FM.py",
+        "Best first page for a guided explanation.",
+        "Start with the simplest guided story of one hospital day.",
+    ),
+    (
+        "Why is there no bed?",
+        "pages/7_Why_No_Bed_For_A_New_Patient.py",
+        "Patient-flow scenario with bed readiness and hidden blockers.",
+        "Go straight to the most intuitive patient-flow question.",
+    ),
+    (
+        "What if equipment fails?",
+        "pages/8_What_Happens_When_A_CT_Scanner_Fails.py",
+        "Concrete device failure scenario.",
+        "Follow a CT scanner problem from fault to operational impact.",
+    ),
+    (
+        "Where does the money go?",
+        "pages/9_Why_Backlog_Becomes_A_Money_Problem.py",
+        "Finance view through backlog and estate cost.",
+        "See why backlog is a money problem, not only a maintenance problem.",
+    ),
+]
+for col, (title, page, help_text, body) in zip(route_cols, routes):
+    with col:
+        col.markdown(
+            f"""
+            <div class="nav-card">
+                <h3>{title}</h3>
+                <p>{body}</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.page_link(page, label="Open this path", help=help_text)
 
 st.markdown("### Suggested order")
 order_cols = st.columns(4)
@@ -157,6 +143,16 @@ for col, (step, title, body) in zip(order_cols, steps):
         """,
         unsafe_allow_html=True,
     )
+
+render_next_steps(
+    "Or jump into a specialist view",
+    [
+        ("Buildings", "dashboard/pages/2_Why_Buildings_Matter.py", "Estate pressure and building burden"),
+        ("Equipment", "dashboard/pages/3_What_Happens_When_Hospital_Equipment_Fails.py", "Maintenance and equipment overview"),
+        ("Inspections", "dashboard/pages/4_What_Happens_When_Inspections_Are_Overdue.py", "Compliance and overdue inspections"),
+        ("Whole Trust", "dashboard/pages/5_One_Hospital_Behind_The_Scenes.py", "Integrated trust view"),
+    ],
+)
 
 st.info(
     "If the main page still appears as 'app' in the sidebar, that is Streamlit using the launcher filename. The cleanest next step would be renaming the launcher itself once we finish the content structure."

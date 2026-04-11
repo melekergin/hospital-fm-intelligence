@@ -281,3 +281,14 @@ def render_how_to_read(title: str, body: str) -> None:
         """,
         unsafe_allow_html=True,
     )
+
+
+def render_next_steps(title: str, links: list[tuple[str, str, str]]) -> None:
+    st.markdown(f"### {title}")
+    cols = st.columns(len(links))
+    for col, (label, page, help_text) in zip(cols, links):
+        normalized_page = page.replace("\\", "/")
+        if normalized_page.startswith("dashboard/"):
+            normalized_page = normalized_page[len("dashboard/"):]
+        with col:
+            st.page_link(normalized_page, label=label, help=help_text)

@@ -9,6 +9,7 @@ from lib import (
     query,
     render_glossary,
     render_how_to_read,
+    render_next_steps,
     render_setup_message,
 )
 
@@ -153,21 +154,23 @@ render_how_to_read(
     "These trust summaries keep the story anchored in something measurable. They are not there to overwhelm you. They are there to show that the hidden pressures in the story differ across hospitals.",
 )
 
-latest = latest.sort_values("total_backlog_gbp", ascending=False)
-for _, row in latest.head(10).iterrows():
-    st.markdown(
-        f"""
-        <div class="kpi-note">
-            <strong>{row['trust_code']} | {row['trust_name']}</strong><br>
-            Region: {row['region']}<br>
-            Backlog: GBP {row['total_backlog_gbp']/1e6:,.1f}M |
-            Energy: GBP {row['total_energy_cost_gbp']/1e6:,.1f}M |
-            Cleaning: GBP {row['total_cleaning_cost_gbp']/1e6:,.1f}M<br>
-            Pressure profile: backlog {row['backlog_cost_per_m2']:,.2f} per m2, energy {row['energy_cost_per_m2']:,.2f} per m2, cleaning {row['cleaning_cost_per_m2']:,.2f} per m2
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
+key_takeaway_cols = st.columns(3)
+key_takeaway_cols[0].markdown(
+    f"<div class='kpi-note'><strong>Bed and room pressure</strong><br>Average cleaning pressure is GBP {latest['cleaning_cost_per_m2'].mean():,.2f} per m2 across the current view.</div>",
+    unsafe_allow_html=True,
+)
+key_takeaway_cols[1].markdown(
+    f"<div class='kpi-note'><strong>Building pressure</strong><br>Average backlog pressure is GBP {latest['backlog_cost_per_m2'].mean():,.2f} per m2, which shapes how resilient the estate feels.</div>",
+    unsafe_allow_html=True,
+)
+key_takeaway_cols[2].markdown(
+    (
+        f"<div class='kpi-note'><strong>Sterile-services signal</strong><br>Average dispatch delay is {aemp_latest['avg_dispatch_delay_minutes'].mean():,.1f} minutes.</div>"
+        if not aemp_latest.empty
+        else "<div class='kpi-note'><strong>Sterile-services signal</strong><br>No AEMP data in the current filter.</div>"
+    ),
+    unsafe_allow_html=True,
+)
 
 if not aemp_latest.empty:
     st.subheader("The sterile-services part of the story")
@@ -190,6 +193,15 @@ if not aemp_latest.empty:
         use_container_width=True,
         hide_index=True,
     )
+
+render_next_steps(
+    "Where next?",
+    [
+        ("Why is there no bed?", "dashboard/pages/7_Why_No_Bed_For_A_New_Patient.py", "Continue into the patient-flow scenario"),
+        ("Why buildings matter", "dashboard/pages/2_Why_Buildings_Matter.py", "Go deeper into estate pressure"),
+        ("One hospital behind the scenes", "dashboard/pages/5_One_Hospital_Behind_The_Scenes.py", "See the full trust view"),
+    ],
+)
 
 st.info(
     "The key idea is simple: hospital FM is not one invisible support function. It is a chain of readiness work that keeps care moving from morning to night."
